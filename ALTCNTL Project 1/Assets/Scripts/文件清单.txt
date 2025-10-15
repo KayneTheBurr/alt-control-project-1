@@ -1,0 +1,456 @@
+╔══════════════════════════════════════════════════════════════╗
+║                    摇摆倾斜系统 - 文件清单                       ║
+╚══════════════════════════════════════════════════════════════╝
+
+创建日期：2025-10-13
+系统版本：1.0
+Unity兼容：2019.4+
+
+【核心系统文件】（必需）
+──────────────────────────────────────────────────────
+
+✓ SwayPhase.cs                      [5 KB]
+  功能：阶段枚举定义
+  包含：
+    • SwayPhase 枚举（7个阶段）
+    • SwayPhaseExtensions 扩展方法类
+    • 阶段判断、转换、查询等工具方法
+  依赖：无
+
+✓ SwayController.cs                 [18 KB]
+  功能：摇摆控制器（核心逻辑）
+  包含：
+    • 阶段转换管理
+    • 玩家输入处理
+    • 倒计时系统（居中、倾斜、倾倒）
+    • 动画过渡控制
+    • 事件系统（OnPhaseChanged, OnToppleDrop）
+  依赖：SwayPhase.cs
+
+✓ StackController.cs                [12 KB]
+  功能：堆叠物体管理器
+  包含：
+    • 物体创建和移除
+    • 掉落效果处理
+    • DropAnimation 组件（掉落动画）
+    • 堆叠高度管理
+    • StackVisualController 集成
+  依赖：SwayController.cs
+
+⭐ StackVisualController.cs         [15 KB] 【新增】
+  功能：堆叠视觉控制器（动态x轴偏移）
+  包含：
+    • 智能偏移计算（基于倾斜阶段）
+    • 多种偏移模式（线性、指数、正弦、自定义）
+    • 平滑动画系统
+    • 位置跟踪API（获取所有物体x位置）
+    • 实时调试可视化
+  依赖：StackController.cs, SwayController.cs
+
+【工具和演示文件】（推荐）
+──────────────────────────────────────────────────────
+
+✓ SwaySystemDemo.cs                 [8 KB]
+  功能：演示脚本和使用示例
+  包含：
+    • 事件订阅示例
+    • 右键测试菜单
+    • 使用说明打印
+    • Inspector测试按钮
+  依赖：SwayController.cs, StackController.cs
+
+✓ SwaySystemQuickSetup.cs           [10 KB]
+  功能：一键快速设置工具
+  包含：
+    • 自动设置向导
+    • 难度预设（简单/正常/困难/极难/自定义）
+    • 预制体模板创建器
+    • 游戏流程模拟测试
+  依赖：SwayController.cs, StackController.cs
+
+【文档文件】（参考）
+──────────────────────────────────────────────────────
+
+✓ 摇摆系统使用指南.txt              [25 KB]
+  内容：
+    • 系统简介和概述
+    • 快速开始指南
+    • 详细规则说明
+    • 参数调整指南
+    • 游戏设计建议
+    • 常见问题解答
+    • 扩展功能示例
+
+⭐ 堆叠视觉控制说明.txt              [18 KB] 【新增】
+  内容：
+    • 视觉控制系统简介
+    • 核心参数详解
+    • 偏移计算公式
+    • API使用指南
+    • 视觉效果调整
+    • 高级用法示例
+    • 与其他系统配合
+
+✓ README_SWAY_SYSTEM.md             [18 KB]
+  内容：
+    • Markdown格式说明文档
+    • 视觉增强功能说明
+    • 代码示例
+    • API参考
+    • 游戏设计模式
+    • 性能优化建议
+
+✓ 文件清单.txt                     [本文件]
+  内容：
+    • 所有文件列表
+    • 功能说明
+    • 使用流程
+    • 集成指南
+
+【旧版平衡系统文件】（可选，不冲突）
+──────────────────────────────────────────────────────
+
+以下文件是之前创建的物理平衡模拟系统，与摇摆系统功能不同，
+可以保留用于其他用途，也可以删除：
+
+○ BalanceableObject.cs
+○ BalanceCalculator.cs
+○ BalanceManager.cs
+○ ObjectPlacer.cs
+○ BalanceSystemDemo.cs
+○ BalanceSystemSetup.cs
+
+这些文件实现了基于物理的平衡模拟，不使用Unity物理引擎。
+如果您的项目需要这种功能，可以保留；否则可以安全删除。
+
+【文件总览】
+──────────────────────────────────────────────────────
+
+必需文件：3个（SwayPhase, SwayController, StackController）
+推荐文件：3个（StackVisualController, SwaySystemDemo, SwaySystemQuickSetup）
+文档文件：4个（摇摆使用指南, 视觉控制说明, README, 本文件）
+旧版文件：6个（可选删除）
+
+总计：16个文件
+
+⭐ 本次更新新增：
+  • StackVisualController.cs - 视觉控制核心
+  • 堆叠视觉控制说明.txt - 详细文档
+
+
+【使用流程】
+══════════════════════════════════════════════════════════════
+
+┌─ 新手快速开始 ─────────────────────────────────────┐
+│                                                      │
+│ 1. 创建空GameObject "SwaySystem"                    │
+│                                                      │
+│ 2. 添加组件: SwaySystemQuickSetup                   │
+│                                                      │
+│ 3. 进入Play模式 → 勾选 setupSystem                  │
+│                                                      │
+│ 4. 完成！使用箭头键控制                              │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+┌─ 高级用户手动设置 ─────────────────────────────────┐
+│                                                      │
+│ 1. 创建GameObject                                   │
+│                                                      │
+│ 2. 添加组件:                                        │
+│    • SwayController                                 │
+│    • StackController                                │
+│    • SwaySystemDemo (可选)                          │
+│                                                      │
+│ 3. 配置参数（Inspector）                            │
+│                                                      │
+│ 4. 添加自定义预制体（可选）                          │
+│                                                      │
+│ 5. 运行测试                                         │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+┌─ 程序化集成 ───────────────────────────────────────┐
+│                                                      │
+│ GameObject obj = new GameObject("SwaySystem");      │
+│                                                      │
+│ SwayController sway = obj.AddComponent<             │
+│     SwayController>();                              │
+│ sway.transitionDuration = 1.0f;                     │
+│ sway.centerPhaseMinInterval = 4f;                   │
+│ sway.centerPhaseMaxInterval = 8f;                   │
+│ sway.tiltPhaseCountdown = 5f;                       │
+│                                                      │
+│ StackController stack = obj.AddComponent<           │
+│     StackController>();                             │
+│ stack.initialStackCount = 5;                        │
+│ stack.objectSpacing = 1.0f;                         │
+│                                                      │
+│ // 订阅事件                                         │
+│ sway.OnPhaseChanged += YourHandler;                 │
+│ sway.OnToppleDrop += YourDropHandler;               │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+
+【核心API速查】
+══════════════════════════════════════════════════════════════
+
+▸ SwayController 主要方法：
+  ├─ ChangePhase(SwayPhase)        强制改变阶段
+  ├─ TryMovePhase(int direction)   尝试移动（±1）
+  ├─ TryMoveTowardCenter()         向中心移动
+  └─ StabilizeCurrentPhase()       稳定（重置倒计时）
+
+▸ SwayController 属性：
+  ├─ CurrentPhase                  当前阶段
+  ├─ IsTransitioning               是否在转换中
+  └─ CurrentCountdown              当前倒计时
+
+▸ SwayController 事件：
+  ├─ OnPhaseChanged(old, new)      阶段改变时
+  └─ OnToppleDrop()                物体掉落时
+
+▸ StackController 主要方法：
+  ├─ AddObjectToStack()            添加物体到顶部
+  ├─ RemoveTopObject()             移除顶部物体
+  ├─ GetStackHeight()              获取堆叠高度
+  ├─ ClearStack()                  清空堆叠
+  └─ RebuildStack(count)           重建堆叠
+
+⭐ StackVisualController 主要方法：【新增】
+  ├─ GetBaseObjectXPosition()      获取最低端物体x位置
+  ├─ GetAllXPositions()            获取所有物体x位置数组
+  ├─ GetObjectXPosition(index)     获取指定物体x位置
+  ├─ SetBaseXPosition(x)           设置基准x位置
+  ├─ RefreshPositions()            手动刷新所有位置
+  └─ GetOffsetInfo()               获取偏移信息（调试）
+
+▸ SwayPhase 扩展方法：
+  ├─ IsTopplePhase()               是否为倾倒阶段
+  ├─ IsCenterPhase()               是否为居中阶段
+  ├─ IsTiltPhase()                 是否为倾斜阶段
+  ├─ GetDirection()                获取方向（-1/0/1）
+  ├─ GetNextPhaseInSameDirection() 同方向下一阶段
+  ├─ GetNextPhaseTowardCenter()    向中心下一阶段
+  ├─ GetRotationAngle()            获取旋转角度
+  └─ GetChineseName()              获取中文名称
+
+
+【参数配置速查】
+══════════════════════════════════════════════════════════════
+
+┌─ SwayController 关键参数 ──────────────────────────┐
+│                                                      │
+│ transitionDuration          1.0秒    转换时长       │
+│ centerPhaseMinInterval      4.0秒    居中最小间隔   │
+│ centerPhaseMaxInterval      8.0秒    居中最大间隔   │
+│ tiltPhaseCountdown          5.0秒    倾斜倒计时     │
+│ toppleFirstDropCountdown    3.0秒    倾倒间隔       │
+│                                                      │
+│ tiltLeftKey        LeftArrow    向左按键            │
+│ tiltRightKey       RightArrow   向右按键            │
+│ centerKey          DownArrow    回中按键            │
+│ stabilizeKey       UpArrow      稳定按键            │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+┌─ StackController 关键参数 ─────────────────────────┐
+│                                                      │
+│ initialStackCount          5个     初始数量         │
+│ objectSpacing              1.0     物体间距         │
+│ objectPrefab              null     自定义预制体     │
+│ dropForce                  5.0     掉落力度         │
+│ dropTorque                 2.0     掉落扭矩         │
+│ droppedObjectLifetime      3.0秒   掉落物存活时间   │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+⭐┌─ StackVisualController 关键参数 ──────────────────┐
+│                                                      │
+│ baseOffsetPerTilt         0.15     每级倾斜偏移     │
+│ heightMultiplier          1.0      高度影响系数     │
+│ objectSpacing             1.0      物体间距         │
+│ baseXPosition             0.0      基准x位置        │
+│ offsetMode           Exponential    偏移模式        │
+│ smoothTime                0.2秒    平滑时间         │
+│ useSmoothMovement         true     启用平滑移动     │
+│                                                      │
+│ 偏移模式选项：                                       │
+│   • Linear - 线性偏移（均匀）                       │
+│   • Exponential - 指数偏移（越高越明显）            │
+│   • Sine - 正弦曲线（自然）                         │
+│   • Custom - 自定义曲线                             │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+
+【难度预设参考】
+══════════════════════════════════════════════════════════════
+
+简单 (Easy)
+  转换: 1.5秒 | 居中: 6-12秒 | 倾斜: 8秒 | 倾倒: 4秒
+
+正常 (Normal)
+  转换: 1.0秒 | 居中: 4-8秒  | 倾斜: 5秒 | 倾倒: 3秒
+
+困难 (Hard)
+  转换: 0.7秒 | 居中: 3-6秒  | 倾斜: 3秒 | 倾倒: 2秒
+
+极难 (Extreme)
+  转换: 0.5秒 | 居中: 2-4秒  | 倾斜: 2秒 | 倾倒: 1.5秒
+
+
+【常见操作】
+══════════════════════════════════════════════════════════════
+
+获取当前阶段：
+  SwayPhase phase = swayController.CurrentPhase;
+  string name = phase.GetChineseName();
+
+强制居中：
+  swayController.ChangePhase(SwayPhase.Center);
+
+检查是否倾倒：
+  if (swayController.CurrentPhase.IsTopplePhase()) {
+      // 处理倾倒状态
+  }
+
+添加物体：
+  for (int i = 0; i < 5; i++) {
+      stackController.AddObjectToStack();
+  }
+
+订阅事件：
+  swayController.OnPhaseChanged += (old, newPhase) => {
+      Debug.Log($"变化: {old} → {newPhase}");
+  };
+
+调整难度：
+  swayController.tiltPhaseCountdown = 3f;  // 更难
+  swayController.tiltPhaseCountdown = 8f;  // 更易
+
+
+【调试技巧】
+══════════════════════════════════════════════════════════════
+
+1. 启用调试信息：
+   swayController.showDebugInfo = true;
+   swayController.logPhaseChanges = true;
+   stackController.showDebugInfo = true;
+   stackController.logDropEvents = true;
+
+2. 使用右键菜单测试：
+   在 SwaySystemDemo 组件上右键
+   选择各种测试功能
+
+3. Inspector测试：
+   在 SwaySystemQuickSetup 中
+   勾选各种 test 选项
+
+4. 慢动作测试：
+   Time.timeScale = 0.5f;
+
+5. 查看日志：
+   Console窗口搜索 [SwayController] 或 [StackController]
+
+
+【集成检查清单】
+══════════════════════════════════════════════════════════════
+
+☐ 1. 确认所有必需文件已导入
+     □ SwayPhase.cs
+     □ SwayController.cs
+     □ StackController.cs
+
+☐ 2. 创建SwaySystem GameObject
+
+☐ 3. 添加核心组件
+     □ SwayController
+     □ StackController
+
+☐ 4. 配置参数
+     □ 设置难度
+     □ 配置按键
+     □ 调整间距
+
+☐ 5. 测试基本功能
+     □ 按箭头键可控制
+     □ 自动倾斜工作
+     □ 掉落效果正常
+
+☐ 6. 添加自定义元素（可选）
+     □ 自定义物体预制体
+     □ UI界面
+     □ 音效和特效
+
+☐ 7. 集成游戏逻辑
+     □ 计分系统
+     □ 难度递增
+     □ 游戏结束判定
+
+
+【性能建议】
+══════════════════════════════════════════════════════════════
+
+• 掉落物体自动销毁（3秒后）
+• 使用对象池（大量掉落时）
+• 限制堆叠高度（避免过多物体）
+• 合理设置 droppedObjectLifetime
+• 使用协程而非Update处理倒计时
+
+
+【故障排除】
+══════════════════════════════════════════════════════════════
+
+问题：物体看不见
+解决：
+  • 检查相机位置和方向
+  • 确认SwaySystem位置在视野内
+  • 查看Scene视图确认物体存在
+
+问题：按键无反应
+解决：
+  • 确认游戏处于Play模式
+  • 检查按键配置
+  • 查看Console是否有错误
+
+问题：不会自动倾斜
+解决：
+  • 确认 centerPhaseMinInterval 和 MaxInterval 设置合理
+  • 检查是否处于Center阶段
+  • 查看倒计时是否在运行
+
+问题：掉落效果异常
+解决：
+  • 检查 StackController.dropForce 参数
+  • 确认有足够的物体可掉落
+  • 查看Console日志
+
+
+【版本历史】
+══════════════════════════════════════════════════════════════
+
+v1.0 (2025-10-13)
+  • 初始版本发布
+  • 完整的7阶段摇摆系统
+  • 自动和手动控制
+  • 快速设置工具
+  • 完整文档
+
+
+【联系支持】
+══════════════════════════════════════════════════════════════
+
+遇到问题？
+  1. 查看 "摇摆系统使用指南.txt"
+  2. 阅读 "README_SWAY_SYSTEM.md"
+  3. 检查Console日志
+  4. 使用调试功能排查
+
+
+╔══════════════════════════════════════════════════════════════╗
+║                   感谢使用摇摆倾斜系统！                        ║
+║                       祝您开发顺利！                           ║
+╚══════════════════════════════════════════════════════════════╝
+

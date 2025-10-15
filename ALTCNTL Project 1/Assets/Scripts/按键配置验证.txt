@@ -1,0 +1,138 @@
+═══════════════════════════════════════════════════
+    按键配置验证
+═══════════════════════════════════════════════════
+
+📅 检查日期: 2024-10-13
+
+───────────────────────────────────────────────────
+
+🎮 预期配置
+
+  1键 (Alpha1) → 立即左倾倒 (LeftTopple)
+  2键 (Alpha2) → 向左倾斜 (逐级)
+  3键 (Alpha3) → 向右倾斜 (逐级)
+  4键 (Alpha4) → 立即右倾倒 (RightTopple)
+
+───────────────────────────────────────────────────
+
+🔍 代码检查结果
+
+【SwayController.cs 字段定义】
+  ✓ instantLeftToppleKey = KeyCode.Alpha1   (1键)
+  ✓ tiltLeftKey = KeyCode.Alpha2            (2键)
+  ✓ tiltRightKey = KeyCode.Alpha3           (3键)
+  ✓ instantRightToppleKey = KeyCode.Alpha4  (4键)
+
+【SwayController.cs HandlePlayerInput】
+  ✓ 1键 → InstantTopple(SwayPhase.LeftTopple)
+  ✓ 2键 → TryMovePhase(-1)
+  ✓ 3键 → TryMovePhase(1)
+  ✓ 4键 → InstantTopple(SwayPhase.RightTopple)
+
+【SwayPhase.cs 枚举定义】
+  ✓ LeftTopple = -3   (左倾倒)
+  ✓ RightTopple = 3   (右倾倒)
+
+───────────────────────────────────────────────────
+
+✅ 代码配置正确！
+
+  所有代码配置都是正确的：
+  • 1键 → 左倾倒
+  • 4键 → 右倾倒
+
+───────────────────────────────────────────────────
+
+🧪 测试步骤
+
+  【测试1：验证1键】
+    1. 启动游戏
+    2. 按1键
+    3. 查看Console日志
+    4. 预期：显示"立即倾倒: 左倾倒"
+    5. 观察物体应向左倾斜
+
+  【测试4：验证4键】
+    1. 启动游戏（或按↓回中心）
+    2. 按4键
+    3. 查看Console日志
+    4. 预期：显示"立即倾倒: 右倾倒"
+    5. 观察物体应向右倾斜
+
+───────────────────────────────────────────────────
+
+❓ 可能的问题
+
+  如果4键触发了左倾倒，可能原因：
+
+  【原因1：Inspector手动修改】
+    在Unity Inspector中手动修改了按键
+    
+    解决方法：
+      选中SwayController组件
+      检查"玩家输入"区域
+      确认Instant Right Topple Key = Alpha4
+
+  【原因2：旧设置残留】
+    项目中有旧的设置文件
+    
+    解决方法：
+      删除场景中旧的GameObject
+      使用SwaySystemQuickSetup重新创建
+
+  【原因3：其他脚本覆盖】
+    有其他脚本也在监听按键
+    
+    解决方法：
+      搜索项目中所有Alpha4的引用
+      检查是否有冲突
+
+───────────────────────────────────────────────────
+
+🔧 强制重置按键配置
+
+  如果需要重置，在SwayController.Start()中添加：
+
+  void Start()
+  {
+      // 强制设置按键（用于调试）
+      instantLeftToppleKey = KeyCode.Alpha1;
+      tiltLeftKey = KeyCode.Alpha2;
+      tiltRightKey = KeyCode.Alpha3;
+      instantRightToppleKey = KeyCode.Alpha4;
+      
+      // ... 其他初始化代码
+  }
+
+───────────────────────────────────────────────────
+
+📊 日志检查
+
+  按键时应该看到的日志：
+
+  按1键：
+    [SwayController] 立即倾倒: 左倾倒
+    [SwayController] 阶段转换: 居中 → 左倾倒
+
+  按4键：
+    [SwayController] 立即倾倒: 右倾倒
+    [SwayController] 阶段转换: 居中 → 右倾倒
+
+  如果日志不对，说明有问题。
+
+───────────────────────────────────────────────────
+
+✅ 结论
+
+  代码本身是正确的！
+  
+  1键 = 左倾倒 ✓
+  4键 = 右倾倒 ✓
+  
+  如果游戏中表现不对，请：
+  1. 检查Unity Inspector中的设置
+  2. 删除并重新创建GameObject
+  3. 使用快速设置工具
+
+═══════════════════════════════════════════════════
+

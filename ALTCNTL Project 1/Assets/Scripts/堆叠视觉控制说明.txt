@@ -1,0 +1,395 @@
+╔══════════════════════════════════════════════════════════════╗
+║              堆叠视觉控制系统 - 使用说明                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+【系统简介】
+──────────────────────────────────────────────────────
+
+StackVisualController 是一个增强型堆叠视觉控制系统，能够根据
+当前倾斜阶段、物品数量和位置，动态调整堆叠物体的x轴偏移，
+模拟真实的物理堆叠效果。
+
+【核心功能】
+──────────────────────────────────────────────────────
+
+✓ 动态x轴偏移计算
+  • 根据倾斜阶段自动调整物体位置
+  • 越高的物体偏移越大（模拟重心偏移）
+  • 支持多种偏移模式（线性、指数、正弦、自定义）
+
+✓ 实时位置跟踪
+  • 获取最低端物体的x轴位置
+  • 获取所有物体的x轴位置数组
+  • 支持查询任意物体的位置
+
+✓ 平滑动画
+  • 可配置的平滑移动效果
+  • 自然的过渡动画
+  • 防止突变和抖动
+
+✓ 多种偏移模式
+  • Linear（线性）- 均匀偏移
+  • Exponential（指数）- 越高偏移越明显
+  • Sine（正弦）- 自然曲线
+  • Custom（自定义）- 使用AnimationCurve
+
+【快速开始】
+──────────────────────────────────────────────────────
+
+方法1：使用快速设置工具（推荐）
+  1. 添加 SwaySystemQuickSetup 组件
+  2. 勾选 setupSystem
+  3. 系统会自动添加 StackVisualController
+
+方法2：手动添加
+  1. 在已有SwaySystem上添加 StackVisualController 组件
+  2. 它会自动找到 StackController 和 SwayController
+  3. 配置参数后即可使用
+
+【核心参数说明】
+──────────────────────────────────────────────────────
+
+▸ baseOffsetPerTilt（每级倾斜的基础偏移）
+  默认值: 0.15
+  说明: 每增加一级倾斜，基础x轴偏移增加的量
+  效果:
+    • 0.05 - 微小偏移，适合紧密堆叠
+    • 0.15 - 适中偏移，视觉效果好
+    • 0.30 - 明显偏移，夸张效果
+  
+  示例：
+    倾斜级别 1: 偏移 = 0.15 * 1 = 0.15
+    倾斜级别 2: 偏移 = 0.15 * 2 = 0.30
+    倾斜级别 3: 偏移 = 0.15 * 3 = 0.45
+
+▸ heightMultiplier（高度影响系数）
+  默认值: 1.0
+  范围: 0.0 - 2.0
+  说明: 控制高度对偏移的影响程度
+  效果:
+    • 0.0 - 所有物体偏移相同（无高度影响）
+    • 1.0 - 正常高度影响
+    • 2.0 - 高度影响加倍（顶部物体偏移更大）
+
+▸ objectSpacing（物体间距）
+  默认值: 1.0
+  说明: 物体垂直间距，应与StackController保持一致
+
+▸ baseXPosition（基准x位置）
+  默认值: 0.0
+  说明: 最低端物体的x轴位置（其他物体相对此位置偏移）
+
+▸ offsetMode（偏移模式）
+  • Linear - 线性偏移
+    效果: 均匀分布，每个物体偏移增量相同
+    
+  • Exponential - 指数偏移
+    效果: 越往上偏移增长越快
+    公式: offset = baseOffset * height²
+    
+  • Sine - 正弦曲线偏移
+    效果: 平滑自然的曲线
+    公式: offset = baseOffset * sin(height * π/2)
+    
+  • Custom - 自定义曲线
+    使用: customOffsetCurve 参数
+
+▸ smoothTime（平滑时间）
+  默认值: 0.2秒
+  范围: 0.0 - 1.0
+  说明: 位置调整的平滑时间
+  效果:
+    • 0.0 - 立即到位（无平滑）
+    • 0.2 - 快速平滑
+    • 0.5 - 缓慢平滑
+
+▸ useSmoothMovement（启用平滑移动）
+  默认值: true
+  说明: 是否使用SmoothDamp平滑移动
+
+【偏移计算公式】
+──────────────────────────────────────────────────────
+
+最终偏移量 = baseOffsetPerTilt × 倾斜级别 × 高度系数 × 高度影响系数 × 方向
+
+详细计算：
+  1. 获取倾斜级别（0-3）
+  2. 获取倾斜方向（-1=左，1=右）
+  3. 计算归一化高度（0-1，0=底部，1=顶部）
+  4. 根据模式计算高度系数
+  5. 应用公式得到最终偏移
+
+示例计算（右倾2，5个物体堆叠）：
+  
+  物体0（最底部）:
+    归一化高度 = 0/4 = 0
+    高度系数 = 0² = 0
+    偏移 = 0.15 × 2 × 0 × 1.0 × 1 = 0
+  
+  物体2（中间）:
+    归一化高度 = 2/4 = 0.5
+    高度系数 = 0.5² = 0.25
+    偏移 = 0.15 × 2 × 0.25 × 1.0 × 1 = 0.075
+  
+  物体4（最顶部）:
+    归一化高度 = 4/4 = 1.0
+    高度系数 = 1.0² = 1.0
+    偏移 = 0.15 × 2 × 1.0 × 1.0 × 1 = 0.30
+
+【API使用说明】
+──────────────────────────────────────────────────────
+
+// 获取组件
+StackVisualController visual = GetComponent<StackVisualController>();
+
+// 获取最低端物体的x位置
+float baseX = visual.GetBaseObjectXPosition();
+
+// 获取所有物体的x位置
+float[] allXPositions = visual.GetAllXPositions();
+for (int i = 0; i < allXPositions.Length; i++) {
+    Debug.Log($"物体{i} X位置: {allXPositions[i]}");
+}
+
+// 获取指定物体的x位置
+float topObjectX = visual.GetObjectXPosition(4); // 第5个物体
+
+// 设置基准x位置
+visual.SetBaseXPosition(0.5f);
+
+// 手动刷新位置（添加/移除物体后）
+visual.RefreshPositions();
+
+// 获取偏移信息（调试用）
+string info = visual.GetOffsetInfo();
+Debug.Log(info);
+
+【视觉效果调整指南】
+──────────────────────────────────────────────────────
+
+想要不同的视觉效果？调整这些参数：
+
+效果1：轻微倾斜（真实物理）
+  baseOffsetPerTilt = 0.08
+  heightMultiplier = 1.0
+  offsetMode = Exponential
+  → 适合写实风格游戏
+
+效果2：明显倾斜（夸张效果）
+  baseOffsetPerTilt = 0.25
+  heightMultiplier = 1.5
+  offsetMode = Exponential
+  → 适合卡通风格游戏
+
+效果3：均匀偏移
+  baseOffsetPerTilt = 0.15
+  heightMultiplier = 0.5
+  offsetMode = Linear
+  → 适合极简风格
+
+效果4：自然摇摆
+  baseOffsetPerTilt = 0.12
+  heightMultiplier = 1.0
+  offsetMode = Sine
+  → 适合休闲游戏
+
+效果5：无偏移（关闭效果）
+  baseOffsetPerTilt = 0.0
+  或者移除 StackVisualController 组件
+
+【调试功能】
+──────────────────────────────────────────────────────
+
+▸ 实时调试信息（Game视图左下角）
+  显示内容：
+    • 物体数量
+    • 当前倾斜阶段
+    • 基准X位置
+    • 偏移模式
+    • 每个物体的x位置和偏移量
+
+▸ Scene视图可视化
+  • 黄色线：物体间连线
+  • 绿色线：基准垂直线
+  • 红色线：偏移指示线
+
+▸ 日志输出
+  启用: logOffsetCalculations = true
+  输出内容：
+    • 每次计算的详细信息
+    • 阶段、方向、级别
+    • 每个物体的偏移计算
+
+【集成到现有项目】
+──────────────────────────────────────────────────────
+
+步骤1：添加组件
+  在SwaySystem GameObject上添加 StackVisualController
+
+步骤2：设置引用
+  • stackController - 自动查找
+  • swayController - 自动查找
+  （也可以手动拖拽赋值）
+
+步骤3：配置参数
+  根据需求调整参数（见上文）
+
+步骤4：测试效果
+  运行游戏，按箭头键观察堆叠变化
+
+【性能考虑】
+──────────────────────────────────────────────────────
+
+• 每帧更新位置（Update中）
+• 使用字典缓存目标位置和速度
+• SmoothDamp计算量较小
+• 建议堆叠物体数量 < 20个
+
+优化建议：
+  • 物体静止时可暂停更新
+  • 使用对象池减少GC
+  • 考虑使用FixedUpdate替代Update
+
+【高级用法】
+──────────────────────────────────────────────────────
+
+用法1：自定义偏移曲线
+  1. 设置 offsetMode = Custom
+  2. 在Inspector中编辑 customOffsetCurve
+  3. 曲线X轴：0-1（底部到顶部）
+  4. 曲线Y轴：偏移系数
+
+用法2：程序化控制偏移
+  // 根据游戏进度增加偏移
+  void IncreaseStackInstability() {
+      visual.baseOffsetPerTilt += 0.05f;
+      visual.heightMultiplier += 0.1f;
+  }
+
+用法3：特殊效果
+  // 随机抖动效果
+  void Update() {
+      float shake = Random.Range(-0.02f, 0.02f);
+      visual.SetBaseXPosition(shake);
+  }
+
+用法4：响应式调整
+  // 根据堆叠高度调整参数
+  void OnStackHeightChanged(int height) {
+      if (height > 10) {
+          visual.baseOffsetPerTilt = 0.2f; // 更不稳定
+      } else {
+          visual.baseOffsetPerTilt = 0.15f; // 正常
+      }
+  }
+
+【与其他系统配合】
+──────────────────────────────────────────────────────
+
+配合计分系统：
+  // 根据偏移量计算难度系数
+  float[] xPos = visual.GetAllXPositions();
+  float maxOffset = Mathf.Abs(xPos[xPos.Length - 1] - xPos[0]);
+  float difficultyMultiplier = 1.0f + maxOffset;
+
+配合特效系统：
+  // 顶部物体偏移过大时播放警告特效
+  float topX = visual.GetObjectXPosition(stackController.GetStackHeight() - 1);
+  float baseX = visual.GetBaseObjectXPosition();
+  if (Mathf.Abs(topX - baseX) > 0.5f) {
+      PlayWarningEffect();
+  }
+
+配合音效系统：
+  // 根据偏移变化播放音效
+  void OnPhaseChanged(SwayPhase old, SwayPhase newPhase) {
+      float oldOffset = CalculateMaxOffset(old);
+      float newOffset = CalculateMaxOffset(newPhase);
+      
+      if (newOffset > oldOffset) {
+          PlayCreakSound(); // 加剧倾斜的声音
+      }
+  }
+
+【常见问题】
+──────────────────────────────────────────────────────
+
+Q: 物体位置不更新？
+A: 检查：
+   • StackVisualController 是否启用
+   • stackController 引用是否正确
+   • swayController 引用是否正确
+
+Q: 偏移太大或太小？
+A: 调整：
+   • baseOffsetPerTilt（基础偏移）
+   • heightMultiplier（高度系数）
+
+Q: 移动不平滑？
+A: 调整：
+   • smoothTime（增加值更平滑）
+   • useSmoothMovement = true
+
+Q: 添加物体后位置不对？
+A: 调用：
+   visual.RefreshPositions();
+
+Q: 想要不同的偏移曲线？
+A: 修改：
+   • offsetMode（选择模式）
+   • customOffsetCurve（自定义曲线）
+
+Q: 性能问题？
+A: 优化：
+   • 减少堆叠物体数量
+   • 禁用showDebugInfo
+   • 使用更简单的offsetMode
+
+【示例场景】
+──────────────────────────────────────────────────────
+
+场景1：经典堆叠游戏
+  baseOffsetPerTilt = 0.15
+  heightMultiplier = 1.0
+  offsetMode = Exponential
+  smoothTime = 0.2
+  → 平衡的视觉效果
+
+场景2：快节奏动作游戏
+  baseOffsetPerTilt = 0.25
+  heightMultiplier = 1.5
+  offsetMode = Exponential
+  smoothTime = 0.1
+  → 夸张快速的视觉
+
+场景3：休闲益智游戏
+  baseOffsetPerTilt = 0.10
+  heightMultiplier = 0.8
+  offsetMode = Sine
+  smoothTime = 0.3
+  → 舒缓平滑的视觉
+
+【总结】
+──────────────────────────────────────────────────────
+
+StackVisualController 提供了强大而灵活的堆叠视觉控制：
+
+核心优势：
+  ✓ 自动计算物体偏移
+  ✓ 多种偏移模式可选
+  ✓ 平滑动画效果
+  ✓ 完整的API接口
+  ✓ 详细的调试信息
+
+使用建议：
+  • 从预设参数开始
+  • 根据游戏风格调整
+  • 测试不同偏移模式
+  • 观察玩家反馈
+  • 精细调整参数
+
+╔══════════════════════════════════════════════════════════════╗
+║            享受更真实的堆叠视觉效果！                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+

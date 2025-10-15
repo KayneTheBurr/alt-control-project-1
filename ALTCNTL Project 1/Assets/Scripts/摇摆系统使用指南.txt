@@ -1,0 +1,422 @@
+╔══════════════════════════════════════════════════════════════╗
+║                  摇摆倾斜系统 - 完整使用指南                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+【系统简介】
+──────────────────────────────────────────────────────
+这是一个基于状态机的2D物体摇摆/倾斜系统，用于模拟一摞堆叠精灵
+的倾斜、平衡和掉落效果。系统不使用Unity的物理引擎，而是通过
+自定义的状态管理和动画控制实现。
+
+【核心文件】
+──────────────────────────────────────────────────────
+✓ SwayPhase.cs              - 阶段枚举和扩展方法
+✓ SwayController.cs         - 摇摆控制器（核心逻辑）
+✓ StackController.cs        - 堆叠管理器（物体管理）
+✓ SwaySystemDemo.cs         - 演示脚本和事件示例
+✓ SwaySystemQuickSetup.cs   - 快速设置工具
+
+【7个倾斜阶段】
+──────────────────────────────────────────────────────
+    -3        -2        -1         0         1         2        3
+ 左倾倒 ← 左倾2 ← 左倾1 ← 居中(默认) → 右倾1 → 右倾2 → 右倾倒
+  -45°     -30°     -15°      0°       15°      30°      45°
+
+
+【快速开始 - 3个步骤】
+──────────────────────────────────────────────────────
+
+步骤1：创建游戏对象
+  • 在场景中创建空GameObject
+  • 命名为 "SwaySystem" 或任意名称
+
+步骤2：添加快速设置脚本
+  • 添加 SwaySystemQuickSetup 组件
+  • 在Inspector中配置参数：
+    - initialStackCount: 5（堆叠数量）
+    - objectSpacing: 1.0（物体间距）
+    - difficulty: Normal（难度）
+
+步骤3：运行自动设置
+  方法A：勾选 setupSystem 复选框（Play模式下）
+  方法B：右键组件 → "执行快速设置"
+  
+  ✓ 完成！系统会自动创建所有需要的组件
+
+【手动设置（高级）】
+──────────────────────────────────────────────────────
+
+1. 创建GameObject
+
+2. 添加 SwayController 组件
+   配置参数：
+   • transitionDuration = 1.0        转换时长
+   • centerPhaseMinInterval = 4.0    居中最小间隔
+   • centerPhaseMaxInterval = 8.0    居中最大间隔
+   • tiltPhaseCountdown = 5.0        倾斜倒计时
+   • toppleFirstDropCountdown = 3.0  倾倒间隔
+
+3. 添加 StackController 组件
+   配置参数：
+   • initialStackCount = 5           初始数量
+   • objectSpacing = 1.0             物体间距
+   • objectPrefab = null             物体预制体（可选）
+
+4. 添加 SwaySystemDemo 组件（可选，用于学习）
+
+【玩家控制】
+──────────────────────────────────────────────────────
+
+默认按键映射：
+  ←  (左箭头)  向左倾斜一级
+  →  (右箭头)  向右倾斜一级
+  ↓  (下箭头)  向中心移动一级
+  ↑  (上箭头)  稳定当前阶段（重置倒计时）
+
+操作示例：
+  居中 + ← = 左倾1
+  左倾1 + ← = 左倾2
+  左倾2 + ← = 左倾倒
+  左倾2 + → = 左倾1
+  左倾1 + ↓ = 居中
+  右倾2 + ↑ = 保持右倾2（重置倒计时）
+
+自定义按键：
+  在 SwayController 中修改：
+  • tiltLeftKey
+  • tiltRightKey
+  • centerKey
+  • stabilizeKey
+
+【系统规则详解】
+──────────────────────────────────────────────────────
+
+1. 阶段转换
+   ✓ 所有转换都有1秒过渡动画（可配置）
+   ✓ 转换期间不接受新输入
+   ✓ 使用平滑的旋转曲线
+
+2. 居中阶段（Center）
+   • 进入后开始随机倒计时（4-8秒）
+   • 倒计时结束后：
+     → 随机选择一个倾斜阶段
+     → 不会选择倾倒或保持居中
+   • 可选择的阶段：左倾1、左倾2、右倾1、右倾2
+
+3. 倾斜阶段（Tilt1/Tilt2）
+   • 进入后开始5秒倒计时
+   • 倒计时期间可以：
+     → 按↑键稳定（重置倒计时）
+     → 按←→键继续倾斜或向中心移动
+     → 按↓键向中心移动
+   • 倒计时结束且阶段未改变时：
+     → 自动转换到同方向的下一个阶段
+     → 左倾1 → 左倾2 → 左倾倒
+     → 右倾1 → 右倾2 → 右倾倒
+
+4. 倾倒阶段（Topple）
+   • 立即从堆叠顶部掉落1个物体
+   • 开始3秒倒计时
+   • 倒计时结束后：
+     → 随机掉落1-2个物体
+     → 重新开始3秒倒计时
+     → 循环重复，直到离开倾倒阶段
+   • 注意：倾倒阶段可以通过按键离开
+
+【难度预设】
+──────────────────────────────────────────────────────
+
+在 SwaySystemQuickSetup 中选择：
+
+简单 (Easy)
+  • 转换时长: 1.5秒
+  • 居中间隔: 6-12秒
+  • 倾斜倒计时: 8秒
+  • 适合新手练习
+
+正常 (Normal)
+  • 转换时长: 1.0秒
+  • 居中间隔: 4-8秒
+  • 倾斜倒计时: 5秒
+  • 标准游戏难度
+
+困难 (Hard)
+  • 转换时长: 0.7秒
+  • 居中间隔: 3-6秒
+  • 倾斜倒计时: 3秒
+  • 挑战性强
+
+极难 (Extreme)
+  • 转换时长: 0.5秒
+  • 居中间隔: 2-4秒
+  • 倾斜倒计时: 2秒
+  • 极限挑战
+
+自定义 (Custom)
+  • 完全自定义所有参数
+
+【创建自定义物体预制体】
+──────────────────────────────────────────────────────
+
+方法1：使用2D Sprite
+  1. 创建空GameObject
+  2. 添加 SpriteRenderer 组件
+  3. 设置Sprite（你的图片）
+  4. 调整大小和颜色
+  5. 保存为预制体
+  6. 拖到 StackController.objectPrefab
+
+方法2：使用3D模型（2D视角）
+  1. 创建Cube或其他Primitive
+  2. 移除Collider组件
+  3. 设置Scale: (1, 1, 0.1) 扁平化
+  4. 调整材质和颜色
+  5. 保存为预制体
+
+方法3：使用QuickSetup自动创建
+  1. 在 SwaySystemQuickSetup 上
+  2. 右键 → "创建物体预制体模板"
+  3. 在Hierarchy中找到 StackObjectTemplate
+  4. 自定义后拖到Project文件夹
+
+【程序化控制API】
+──────────────────────────────────────────────────────
+
+// 获取组件
+SwayController sway = GetComponent<SwayController>();
+StackController stack = GetComponent<StackController>();
+
+// 强制改变阶段
+sway.ChangePhase(SwayPhase.RightTilt2);
+
+// 尝试移动（安全）
+sway.TryMovePhase(-1);  // 向左
+sway.TryMovePhase(1);   // 向右
+sway.TryMoveTowardCenter();  // 向中心
+sway.StabilizeCurrentPhase(); // 稳定
+
+// 查询当前状态
+SwayPhase current = sway.CurrentPhase;
+bool transitioning = sway.IsTransitioning;
+float countdown = sway.CurrentCountdown;
+
+// 堆叠管理
+GameObject newObj = stack.AddObjectToStack();
+GameObject removed = stack.RemoveTopObject();
+int height = stack.GetStackHeight();
+stack.ClearStack();
+stack.RebuildStack(10);
+
+【事件订阅】
+──────────────────────────────────────────────────────
+
+// 阶段改变事件
+swayController.OnPhaseChanged += (oldPhase, newPhase) => {
+    Debug.Log($"从 {oldPhase} 变为 {newPhase}");
+    
+    // 播放音效
+    if (newPhase.IsTopplePhase()) {
+        AudioSource.PlayClipAtPoint(warningSound, Vector3.zero);
+    }
+    
+    // 改变背景颜色
+    Camera.main.backgroundColor = GetColorForPhase(newPhase);
+};
+
+// 物体掉落事件
+swayController.OnToppleDrop += () => {
+    Debug.Log("物体掉落！");
+    
+    // 相机震动
+    StartCoroutine(CameraShake());
+    
+    // 播放音效
+    AudioSource.PlayClipAtPoint(dropSound, Vector3.zero);
+    
+    // 粒子效果
+    Instantiate(dropParticles, dropPosition, Quaternion.identity);
+};
+
+【调试功能】
+──────────────────────────────────────────────────────
+
+实时调试信息（Game视图左上角）
+  • 当前阶段名称
+  • 旋转角度
+  • 是否在转换中
+  • 当前倒计时
+  • 操作提示
+
+启用/禁用调试：
+  SwayController.showDebugInfo = true/false
+  StackController.showDebugInfo = true/false
+
+日志输出：
+  SwayController.logPhaseChanges = true
+  StackController.logDropEvents = true
+
+右键菜单测试功能：
+  • 测试：强制左倾倒
+  • 测试：强制右倾倒
+  • 测试：回到居中
+  • 测试：添加10个物体
+  • 测试：清空堆叠
+  • 测试：重建堆叠
+  • 测试：模拟游戏流程
+
+【游戏设计建议】
+──────────────────────────────────────────────────────
+
+1. 计分系统
+   • 每秒存活 +10分
+   • 成功稳定 +50分
+   • 回到居中 +30分
+   • 物体掉落 -100分
+   • 连续稳定 +倍数奖励
+
+2. 道具系统
+   • 时间减速：延长倒计时
+   • 自动居中：立即回到中心
+   • 稳定护盾：免疫一次倾倒
+   • 堆叠增高：添加物体获得分数
+
+3. 难度递增
+   初期：长倒计时，慢转换
+   中期：标准参数
+   后期：短倒计时，快转换
+   
+   代码示例：
+   void IncreaseDifficulty() {
+       sway.tiltPhaseCountdown -= 0.5f;
+       sway.transitionDuration -= 0.1f;
+   }
+
+4. 视觉反馈
+   • 倒计时UI（进度条）
+   • 阶段颜色指示
+   • 危险预警（红色闪烁）
+   • 成功稳定特效
+
+5. 音效设计
+   • 倾斜音效（whoosh）
+   • 警告音（最后1秒）
+   • 掉落音（crash）
+   • 成功音（chime）
+   • 背景音乐随紧张度变化
+
+【性能优化】
+──────────────────────────────────────────────────────
+
+1. 掉落物体生命周期
+   已自动设置为3秒后销毁
+   可调整：droppedObjectLifetime
+
+2. 对象池（高级）
+   如果频繁掉落，考虑实现对象池：
+   • 重用已掉落的物体
+   • 减少Instantiate/Destroy调用
+
+3. 批量操作
+   • 使用协程处理多个掉落
+   • 延迟非关键更新
+
+【常见问题】
+──────────────────────────────────────────────────────
+
+Q: 如何禁用自动倾斜？
+A: 设置 centerPhaseMaxInterval = Mathf.Infinity
+
+Q: 如何让堆叠永不倾倒？
+A: 订阅事件并在到达倾倒前强制回中心：
+   sway.OnPhaseChanged += (old, newPhase) => {
+       if (newPhase.IsTopplePhase()) {
+           sway.ChangePhase(SwayPhase.Center);
+       }
+   };
+
+Q: 如何改变旋转角度？
+A: 在 SwayPhase.cs 的 GetRotationAngle() 中修改
+
+Q: 如何添加更多倾斜级别？
+A: 需要修改 SwayPhase 枚举并更新相关逻辑
+
+Q: 如何改变掉落方向？
+A: 在 StackController.ApplyDropEffect() 中修改
+
+Q: 物体没有显示怎么办？
+A: 确保相机能看到堆叠位置，调整相机 Transform
+
+Q: 转换太快/太慢？
+A: 调整 transitionDuration 参数
+
+Q: 堆叠位置不对？
+A: 调整 SwaySystem GameObject 的 Transform.position
+
+【扩展功能示例】
+──────────────────────────────────────────────────────
+
+1. 添加倒计时UI
+   public Text countdownText;
+   
+   void Update() {
+       if (sway.CurrentCountdown > 0) {
+           countdownText.text = sway.CurrentCountdown.ToString("F1");
+       }
+   }
+
+2. 添加阶段指示器
+   public Image[] phaseIndicators; // 7个UI图片
+   
+   void OnPhaseChanged(SwayPhase old, SwayPhase newPhase) {
+       int index = (int)newPhase + 3; // 转换为0-6
+       for (int i = 0; i < 7; i++) {
+           phaseIndicators[i].color = (i == index) ? 
+               Color.green : Color.gray;
+       }
+   }
+
+3. 添加相机震动
+   IEnumerator CameraShake() {
+       Vector3 originalPos = Camera.main.transform.position;
+       float duration = 0.3f;
+       float magnitude = 0.2f;
+       
+       while (duration > 0) {
+           Camera.main.transform.position = originalPos + 
+               Random.insideUnitSphere * magnitude;
+           duration -= Time.deltaTime;
+           yield return null;
+       }
+       
+       Camera.main.transform.position = originalPos;
+   }
+
+4. 添加粒子效果
+   public ParticleSystem dropParticles;
+   
+   void OnToppleDrop() {
+       Vector3 topPos = stack.stackedObjects[
+           stack.stackedObjects.Count - 1
+       ].transform.position;
+       
+       Instantiate(dropParticles, topPos, Quaternion.identity);
+   }
+
+【技术支持】
+──────────────────────────────────────────────────────
+
+如遇到问题：
+1. 检查Console日志（启用 logPhaseChanges 和 logDropEvents）
+2. 在Scene视图中观察物体行为
+3. 使用右键菜单的测试功能
+4. 查看 SwaySystemDemo.cs 中的示例代码
+
+系统版本：1.0
+创建日期：2025
+兼容Unity版本：2019.4 及以上
+
+╔══════════════════════════════════════════════════════════════╗
+║                         祝您使用愉快！                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+
